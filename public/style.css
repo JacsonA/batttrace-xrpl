@@ -49,6 +49,13 @@ th { font-size: .85rem; color: var(--discret); }
 .ok { color: var(--ok); }
 .ko { color: var(--ko); }
 
+.aide { color: var(--discret); font-size: .9rem; margin: -4px 0 12px; }
+.pastille { font-size: .8rem; font-weight: 600; }
+.agrements { display: flex; flex-direction: column; gap: 8px; }
+.agrement { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--bord); }
+.agrement:last-child { border-bottom: none; }
+button.danger-texte { color: var(--ko); border-color: var(--ko); }
+
 #journal { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 32px); background: var(--texte); color: #fff; padding: 10px 16px; border-radius: 8px; opacity: 0; transition: opacity .2s; pointer-events: none; }
 #journal.visible { opacity: 1; pointer-events: auto; }
 #journal.erreur { background: var(--ko); }

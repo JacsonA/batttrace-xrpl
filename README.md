@@ -19,6 +19,18 @@ Un lot de batteries passe du fabricant au constructeur, puis au recycleur. Ces e
 
 Chaque transaction porte un Memo `batttrace/etape` (étape et numéro de lot, sans donnée personnelle).
 
+**Agrément des acteurs (Credentials XLS-70)**
+
+Une autorité d'agrément (organisme de certification fictif) habilite chaque acteur. BattTrace refuse toute action (création, cession, réception, clôture) à un acteur qui ne détient pas un agrément accepté et valide : on ne peut pas confier un lot à un recycleur non habilité.
+
+| Étape | Qui signe | Transaction XRPL |
+| --- | --- | --- |
+| Délivrance de l'agrément | Autorité | `CredentialCreate` (type `BATTTRACE_<ROLE>`) |
+| Acceptation de l'agrément | Acteur | `CredentialAccept` |
+| Révocation | Autorité | `CredentialDelete` |
+
+L'agrément est lu directement sur le ledger (`account_objects`, type `credential`) avant chaque action.
+
 **Séparation on-chain / off-chain**
 
 - **On-chain** : le NFT du lot, son détenteur, les transferts et le hash de la fiche.
@@ -31,7 +43,7 @@ Prérequis : Node.js 20 ou plus récent.
 
 ```bash
 npm install
-npm run setup   # crée 3 wallets Testnet (faucet) et écrit leurs seeds dans .env
+npm run setup   # crée 4 wallets Testnet (3 acteurs + autorité) et écrit leurs seeds dans .env
 ```
 
 `.env` est ignoré par Git : aucune seed n'est publiée. Voir `.env.example` pour le format.
@@ -52,13 +64,15 @@ npm run demo
 
 ## Scénario de démonstration
 
-1. Choisir **Fabricant de cellules**, créer un lot (par exemple `LOT-2026-001`).
-2. Le proposer au **Constructeur automobile**.
-3. Choisir **Constructeur automobile** et accepter le transfert.
-4. Le proposer au **Recycleur**, puis choisir **Recycleur** et accepter.
-5. En tant que **Recycleur**, clôturer le lot.
-6. Ouvrir l'historique : chaque étape renvoie vers sa transaction sur [testnet.xrpl.org](https://testnet.xrpl.org).
-7. Cliquer sur « Vérifier la fiche » : conforme. Modifier la capacité du lot dans `data/lots.json`, revérifier : la falsification est détectée.
+1. Dans **Autorité d'agrément**, agréer les trois acteurs (s'ils ne le sont pas déjà).
+2. Choisir **Fabricant de cellules**, créer un lot (par exemple `LOT-2026-001`).
+3. Le proposer au **Constructeur automobile**.
+4. Choisir **Constructeur automobile** et accepter le transfert.
+5. **Révoquer** le recycleur, puis tenter de lui proposer le lot : le transfert est refusé.
+6. **Agréer** de nouveau le recycleur, lui proposer le lot, puis choisir **Recycleur** et accepter.
+7. En tant que **Recycleur**, clôturer le lot.
+8. Ouvrir l'historique : chaque étape renvoie vers sa transaction sur [testnet.xrpl.org](https://testnet.xrpl.org).
+9. Cliquer sur « Vérifier la fiche » : conforme. Modifier la capacité du lot dans `data/lots.json`, revérifier : la falsification est détectée.
 
 ## Réseau et comptes de test
 
@@ -70,12 +84,14 @@ npm run demo
 | Fabricant de cellules | [rhsFHEtNYYAWZBmgf1XMBW6mQcF1nCQudu](https://testnet.xrpl.org/accounts/rhsFHEtNYYAWZBmgf1XMBW6mQcF1nCQudu) |
 | Constructeur automobile | [rM3jMEAnWveAFU2UTttx7EBbxy9bPKczTk](https://testnet.xrpl.org/accounts/rM3jMEAnWveAFU2UTttx7EBbxy9bPKczTk) |
 | Recycleur | [rJRYBRtfsQ4w2UR6NzBr9j7jBgLYGRGL5x](https://testnet.xrpl.org/accounts/rJRYBRtfsQ4w2UR6NzBr9j7jBgLYGRGL5x) |
+| Autorité d'agrément | [rBdD61kSFeHbRtY5yTszWMQV46xu3vxjMJ](https://testnet.xrpl.org/accounts/rBdD61kSFeHbRtY5yTszWMQV46xu3vxjMJ) |
 
 ## Structure du dépôt
 
 ```
 src/xrpl.mjs     connexion Testnet, wallets des acteurs, envoi des transactions
 src/lots.mjs     création, transfert, clôture, historique, vérification de la fiche
+src/credentials.mjs  agrément des acteurs (CredentialCreate / Accept / Delete)
 src/server.mjs   API JSON + serveur de l'interface
 src/setup.mjs    création des wallets Testnet
 src/demo.mjs     scénario complet en ligne de commande
@@ -88,3 +104,4 @@ xrpl-tp/         exercices de prise en main XRPL (TP 1 à 3)
 - **Lien physique-numérique** : le ledger ne prouve pas que la batterie réelle correspond au NFT (il faudrait un QR code ou une puce NFC).
 - **Garde des clés** : pour le PoC, le serveur signe pour les trois acteurs avec des seeds de test. En production, chaque entreprise garderait sa clé (wallet dédié, multi-signature).
 - **Saisie de mauvaise foi** : la blockchain garantit qu'une déclaration ne peut plus être niée ni modifiée, pas qu'elle est vraie.
+- **Contrôle d'agrément applicatif** : l'agrément est vérifié par BattTrace avant chaque transaction. Le ledger, lui, n'empêche pas un acteur non agréé d'accepter une offre NFT envoyée en dehors de l'application.

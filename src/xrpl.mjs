@@ -16,6 +16,10 @@ export const ACTEURS = {
   RECYCLEUR: "Recycleur",
 };
 
+// Organisme d'agrément : il n'agit pas sur les lots, il délivre et révoque les Credentials des acteurs.
+export const AUTORITE = "AUTORITE";
+export const NOM_AUTORITE = "Autorité d'agrément";
+
 let client;
 
 // Une seule connexion partagée, rouverte si elle tombe.
@@ -40,7 +44,7 @@ export async function disconnect() {
 }
 
 export function getWallet(role) {
-  if (!ACTEURS[role]) throw new Error(`Acteur inconnu : ${role}`);
+  if (!ACTEURS[role] && role !== AUTORITE) throw new Error(`Acteur inconnu : ${role}`);
   const seed = process.env[`${role}_SEED`];
   if (!seed) throw new Error(`${role}_SEED manquant dans .env (lancer npm run setup)`);
   return Wallet.fromSeed(seed);

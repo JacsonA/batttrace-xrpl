@@ -8,6 +8,7 @@ import { createHash } from "node:crypto";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { convertStringToHex, convertHexToString } from "xrpl";
 import { ACTEURS, EXPLORER, envoyer, getClient, getWallet, roleDe } from "./xrpl.mjs";
+import { exigerAgrement } from "./credentials.mjs";
 
 const FICHIER = new URL("../data/lots.json", import.meta.url);
 
@@ -59,6 +60,7 @@ function lireMemo(tx) {
 // Le fabricant crée le lot : mint du NFT, hash de la fiche dans l'URI.
 export async function creerLot(role, fiche) {
   if (!fiche?.numero) throw new Error("Le numéro de lot est obligatoire");
+  await exigerAgrement(role);
   const lots = await lireLots();
   if (Object.values(lots).some((l) => l.fiche.numero === fiche.numero)) {
     throw new Error(`Le lot ${fiche.numero} existe déjà`);
@@ -81,6 +83,9 @@ export async function creerLot(role, fiche) {
 
 // Le détenteur propose le lot à un autre acteur : offre à 0 XRP réservée à ce destinataire.
 export async function proposerTransfert(id, deRole, versRole) {
+  // Le cédant et le destinataire doivent être agréés : on ne confie pas un lot à un acteur non habilité.
+  await exigerAgrement(deRole);
+  await exigerAgrement(versRole);
   const de = getWallet(deRole);
   const vers = getWallet(versRole);
   const lots = await lireLots();
@@ -97,6 +102,7 @@ export async function proposerTransfert(id, deRole, versRole) {
 
 // Le destinataire accepte : c'est lui qui signe, le transfert de responsabilité est donc consenti.
 export async function accepterTransfert(id, role) {
+  await exigerAgrement(role);
   const wallet = getWallet(role);
   const c = await getClient();
   let offres = [];
@@ -119,6 +125,7 @@ export async function accepterTransfert(id, role) {
 
 // Fin de vie : le détenteur (le recycleur) détruit le NFT.
 export async function cloturerLot(id, role) {
+  await exigerAgrement(role);
   const wallet = getWallet(role);
   const lots = await lireLots();
   return envoyer(wallet, {

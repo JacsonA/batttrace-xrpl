@@ -13,6 +13,7 @@ import {
   proposerTransfert,
   verifierFiche,
 } from "./lots.mjs";
+import { agreer, etatAgrement, infosAutorite, revoquer } from "./credentials.mjs";
 
 const PORT = Number(process.env.PORT) || 3000;
 const PUBLIC = new URL("../public/", import.meta.url);
@@ -30,7 +31,8 @@ async function acteurs() {
       } catch {
         // compte non activé
       }
-      return { role, nom, address, solde, lien: `${EXPLORER}/accounts/${address}` };
+      const { agree, etat } = await etatAgrement(role);
+      return { role, nom, address, solde, agree, agrement: etat, lien: `${EXPLORER}/accounts/${address}` };
     }),
   );
 }
@@ -44,6 +46,9 @@ async function corps(req) {
 // Table des routes : [méthode, motif, action]
 const ROUTES = [
   ["GET", /^\/api\/acteurs$/, () => acteurs()],
+  ["GET", /^\/api\/autorite$/, () => infosAutorite()],
+  ["POST", /^\/api\/agrements\/([A-Z]+)$/, ([role]) => agreer(role)],
+  ["POST", /^\/api\/agrements\/([A-Z]+)\/revoquer$/, ([role]) => revoquer(role)],
   ["GET", /^\/api\/lots$/, () => listerLots()],
   ["POST", /^\/api\/lots$/, (_, b) => creerLot(b.acteur, b.fiche)],
   ["GET", /^\/api\/lots\/(\w+)\/historique$/, ([id]) => historique(id)],

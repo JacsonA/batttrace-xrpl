@@ -47,8 +47,16 @@ function afficherActeurs() {
       <strong>${echap(a.nom)}</strong>
       <span class="adresse">${echap(a.address)}</span>
       <span>${a.solde ?? "?"} XRP</span>
+      <span class="pastille ${a.agree ? "ok" : "ko"}">${echap(a.agrement)}</span>
     </button>`).join("");
   $("#bloc-creation").hidden = moi !== "FABRICANT";
+  $("#agrements").innerHTML = acteurs.map((a) => `
+    <div class="agrement">
+      <span><strong>${echap(a.nom)}</strong> · <span class="${a.agree ? "ok" : "ko"}">${echap(a.agrement)}</span></span>
+      ${a.agree
+        ? `<button class="secondaire danger-texte" data-revoquer="${a.role}">Révoquer</button>`
+        : `<button data-agreer="${a.role}">Agréer</button>`}
+    </div>`).join("");
 }
 
 function actionsPour(lot) {
@@ -128,6 +136,12 @@ $("#lots").addEventListener("click", (ev) => {
 
 $("#rafraichir").addEventListener("click", rafraichir);
 
+$("#agrements").addEventListener("click", (ev) => {
+  const d = ev.target.dataset;
+  if (d.agreer) action(`Agrément de ${nom(d.agreer)} (CredentialCreate + CredentialAccept)`, () => api(`agrements/${d.agreer}`, {}));
+  if (d.revoquer) action(`Révocation de ${nom(d.revoquer)} (CredentialDelete)`, () => api(`agrements/${d.revoquer}/revoquer`, {}));
+});
+
 $("#verifier").addEventListener("click", async () => {
   const v = await api(`lots/${lotOuvert}/verifier`);
   const el = $("#hist-verif");
@@ -140,6 +154,7 @@ $("#verifier").addEventListener("click", async () => {
 
 (async () => {
   try {
+    api("autorite").then((a) => { $("#autorite-adresse").textContent = a.address; }).catch(() => {});
     await rafraichir();
   } catch (e) {
     journal(`Démarrage impossible : ${e.message}`, null, true);
