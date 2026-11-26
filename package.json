@@ -1,0 +1,19 @@
+{
+  "name": "batttrace-xrpl",
+  "version": "0.1.0",
+  "description": "Passeport numérique de lots de batteries sur le XRP Ledger (Testnet) — PoC hackathon XRPL",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "setup": "node src/setup.mjs",
+    "demo": "node src/demo.mjs",
+    "start": "node src/server.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.10",
+    "xrpl": "^5.3.0"
+  }
+}

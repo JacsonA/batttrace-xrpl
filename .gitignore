@@ -1,0 +1,12 @@
+# Secrets : seeds Testnet des acteurs
+.env
+
+# Dépendances (recréées par npm install)
+node_modules/
+
+# Stockage off-chain local des fiches de lots (généré à l'exécution)
+data/
+
+# Documents de travail et configuration locale
+*.docx
+.claude/

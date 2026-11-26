@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BattTrace</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>BattTrace <span class="badge">XRPL Testnet</span></h1>
+    <p class="sous-titre">Passeport numérique des lots de batteries : chaque étape est une transaction signée sur le XRP Ledger.</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Je suis</h2>
+      <div id="acteurs" class="acteurs">Chargement…</div>
+    </section>
+
+    <section id="bloc-creation" hidden>
+      <h2>Créer un lot</h2>
+      <form id="form-creation" class="grille">
+        <label>Numéro de lot <input name="numero" required placeholder="LOT-2026-001"></label>
+        <label>Chimie <input name="chimie" value="NMC 811"></label>
+        <label>Capacité (kWh) <input name="capaciteKWh" type="number" value="75" min="1"></label>
+        <label>Site de fabrication <input name="site" value="Usine A (fictive)"></label>
+        <button type="submit">Créer le lot (NFTokenMint)</button>
+      </form>
+    </section>
+
+    <section>
+      <div class="titre-ligne">
+        <h2>Lots</h2>
+        <button id="rafraichir" class="secondaire">Rafraîchir</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Lot</th><th>Détenteur</th><th>Statut</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="lots"></tbody>
+      </table>
+    </section>
+
+    <section id="bloc-historique" hidden>
+      <div class="titre-ligne">
+        <h2>Historique du lot <span id="hist-numero"></span></h2>
+        <button id="verifier" class="secondaire">Vérifier la fiche</button>
+      </div>
+      <p id="hist-verif"></p>
+      <ol id="hist-etapes" class="frise"></ol>
+    </section>
+  </main>
+
+  <div id="journal" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
