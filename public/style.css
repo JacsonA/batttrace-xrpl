@@ -71,7 +71,7 @@ h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
 
 .chiffres { display: flex; flex-wrap: wrap; gap: 16px; }
 .chiffre { flex: 1 1 220px; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
-.chiffre span { font-size: 13px; color: var(--discret); font-weight: 500; }
+.chiffre > span { font-size: 13px; color: var(--discret); font-weight: 500; }
 .chiffre strong { font-size: 30px; letter-spacing: -0.02em; }
 .chiffre small { font-size: 18px; color: var(--pale); font-weight: 500; }
 
@@ -158,6 +158,21 @@ th:last-child, td:last-child { padding-right: 24px; text-align: right; }
 .verif.ko strong { color: var(--ko); }
 .verif span { font-size: 13px; color: var(--texte-2); }
 
+/* ---------- Éco-crédits ---------- */
+.chiffre.eco { background: linear-gradient(180deg, #f6fef9, #fff 70%); border-color: #abefc6; }
+.eco-titre { display: flex; align-items: center; gap: 8px; }
+.eco-titre img { border-radius: 5px; }
+.chiffre.eco strong { color: var(--accent); }
+.eco-lien { font-size: 13px; font-weight: 500; text-decoration: none; }
+.puce-eco { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--accent); }
+.frise-icone.eco { background: var(--ok-fond); color: var(--accent); border: 1px solid #abefc6; }
+.recompense { font-size: 13px; color: var(--discret); text-align: center; margin: -4px 0 0; }
+.recompense strong { color: var(--accent); }
+.gain { position: fixed; z-index: 20; left: 50%; top: 40%; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid #abefc6; border-radius: 16px; padding: 16px 24px; box-shadow: 0 20px 40px rgba(16, 24, 40, .18); font-size: 28px; font-weight: 700; color: var(--accent); pointer-events: none; animation: gain 2.6s ease-out forwards; }
+.gain img { width: 40px; height: 40px; border-radius: 10px; }
+.gain small { display: block; font-size: 13px; font-weight: 500; color: var(--discret); }
+@keyframes gain { 0% { opacity: 0; transform: translate(-50%, -30%) scale(.9); } 15% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 75% { opacity: 1; transform: translate(-50%, -55%); } 100% { opacity: 0; transform: translate(-50%, -80%); } }
+
 /* ---------- Falsification ---------- */
 .fiche-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .fiche-actions .btn { flex: 1 1 140px; }
@@ -194,6 +209,7 @@ th:last-child, td:last-child { padding-right: 24px; text-align: right; }
 @media (prefers-reduced-motion: reduce) {
   .qr-balayage { display: none; }
   .verif.ko, .empreinte mark { animation: none; }
+  .gain { animation-duration: .01s; animation-delay: 2.5s; }
   .qr-plein, .qr-cadre { animation: none; transition: none; }
 }
 

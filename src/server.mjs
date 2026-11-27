@@ -17,10 +17,11 @@ import {
   verifierFiche,
 } from "./lots.mjs";
 import { agreer, etatAgrement, infosAutorite, revoquer } from "./credentials.mjs";
+import { solde as soldeEco, totalEmis } from "./ecocredits.mjs";
 
 const PORT = Number(process.env.PORT) || 3000;
 const PUBLIC = new URL("../public/", import.meta.url);
-const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css" };
+const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml" };
 
 async function acteurs() {
   const c = await getClient();
@@ -35,7 +36,8 @@ async function acteurs() {
         // compte non activé
       }
       const { agree, etat } = await etatAgrement(role);
-      return { role, nom, address, solde, agree, agrement: etat, lien: `${EXPLORER}/accounts/${address}` };
+      const ecoCredits = await soldeEco(role);
+      return { role, nom, address, solde, ecoCredits, agree, agrement: etat, lien: `${EXPLORER}/accounts/${address}` };
     }),
   );
 }
@@ -50,6 +52,7 @@ async function corps(req) {
 const ROUTES = [
   ["GET", /^\/api\/acteurs$/, () => acteurs()],
   ["GET", /^\/api\/autorite$/, () => infosAutorite()],
+  ["GET", /^\/api\/ecocredits$/, () => totalEmis()],
   ["POST", /^\/api\/agrements\/([A-Z]+)$/, ([role]) => agreer(role)],
   ["POST", /^\/api\/agrements\/([A-Z]+)\/revoquer$/, ([role]) => revoquer(role)],
   ["GET", /^\/api\/lots$/, () => listerLots()],

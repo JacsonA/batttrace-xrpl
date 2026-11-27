@@ -45,6 +45,18 @@ L'agrément est lu directement sur le ledger (`account_objects`, type `credentia
 - **Off-chain** (`data/lots.json`) : la fiche détaillée du lot (chimie, capacité, site, date). Le bouton « Vérifier la fiche » recalcule son hash et le compare à celui inscrit à la création : toute modification de la fiche est détectée.
 - **L'historique** est reconstitué en lisant le ledger (`account_tx`), pas depuis une base locale.
 
+**Éco-crédits de recyclage (MPT)**
+
+Le règlement européen sur les batteries fixe des objectifs de recyclage : BattTrace récompense la bonne fin de vie d'un lot. Quand le recycleur clôture un lot, l'autorité lui verse **1 éco-crédit (ECO) par kWh recyclé**. ECO est un jeton XRPL natif (Multi-Purpose Token), transférable et négociable sur le DEX.
+
+| Étape | Qui signe | Transaction XRPL |
+| --- | --- | --- |
+| Création du jeton ECO (une fois) | Autorité | `MPTokenIssuanceCreate` |
+| Acceptation de détenir le jeton | Recycleur | `MPTokenAuthorize` |
+| Versement des crédits | Autorité | `Payment` en MPT, avec un Memo qui référence le lot |
+
+La capacité retenue est celle de la fiche **vérifiée contre le hash inscrit à la création**. Gonfler la capacité hors chaîne pour toucher plus de crédits est détecté et le versement est refusé : la falsification a un mobile, et le système la bloque.
+
 **Passeport scannable**
 
 Chaque lot a un QR code qui pointe vers la page publique de son NFT sur testnet.xrpl.org. N'importe qui peut le scanner avec un téléphone et vérifier l'historique du lot sans passer par BattTrace : c'est l'étiquette qui serait collée sur la batterie physique.
@@ -82,7 +94,7 @@ npm run demo
 4. Choisir **Constructeur automobile** et accepter le transfert.
 5. **Révoquer** le recycleur, puis tenter de lui proposer le lot : le transfert est refusé.
 6. **Agréer** de nouveau le recycleur, lui proposer le lot, puis choisir **Recycleur** et accepter.
-7. En tant que **Recycleur**, clôturer le lot.
+7. En tant que **Recycleur**, clôturer le lot : l'autorité lui verse aussitôt ses éco-crédits (1 ECO par kWh), visibles dans son solde, dans l'historique du lot et dans le compteur « kWh recyclés ».
 8. Ouvrir l'historique : chaque étape renvoie vers sa transaction sur [testnet.xrpl.org](https://testnet.xrpl.org). Afficher le passeport en plein écran et le faire scanner au jury.
 9. La fiche est vérifiée à l'ouverture du lot : conforme. Cliquer sur « Simuler une falsification » : la capacité est gonflée de 20 % dans la fiche hors chaîne, et BattTrace affiche aussitôt les deux empreintes côte à côte (celle du ledger et celle de la fiche actuelle), caractères différents surlignés. « Restaurer la fiche d'origine » la rend de nouveau conforme.
 
@@ -104,6 +116,7 @@ npm run demo
 src/xrpl.mjs     connexion Testnet, wallets des acteurs, envoi des transactions
 src/lots.mjs     création, transfert, clôture, historique, vérification de la fiche
 src/credentials.mjs  agrément des acteurs (CredentialCreate / Accept / Delete)
+src/ecocredits.mjs   jeton ECO (MPT) : émission, autorisation, versement, soldes
 src/server.mjs   API JSON + serveur de l'interface
 src/setup.mjs    création des wallets Testnet
 src/demo.mjs     scénario complet en ligne de commande

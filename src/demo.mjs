@@ -42,8 +42,11 @@ try {
   await proposerTransfert(id, "CONSTRUCTEUR", "RECYCLEUR");
   await accepterTransfert(id, "RECYCLEUR");
 
-  console.log("\n5. Le recycleur clôture le lot");
-  await cloturerLot(id, "RECYCLEUR");
+  console.log("\n5. Le recycleur clôture le lot et reçoit ses éco-crédits");
+  const { ecoCredits } = await cloturerLot(id, "RECYCLEUR");
+  console.log(ecoCredits.verse
+    ? `   +${ecoCredits.montant} ${ecoCredits.ticker} versés au recycleur ${ecoCredits.lien}`
+    : `   Éco-crédits refusés : ${ecoCredits.raison}`);
 
   console.log("\n6. Vérification de la fiche off-chain");
   const v = await verifierFiche(id);

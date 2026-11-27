@@ -7,8 +7,9 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { convertStringToHex, convertHexToString } from "xrpl";
-import { ACTEURS, EXPLORER, envoyer, getClient, getWallet, roleDe } from "./xrpl.mjs";
+import { ACTEURS, EXPLORER, NOM_AUTORITE, envoyer, getClient, getWallet, roleDe } from "./xrpl.mjs";
 import { exigerAgrement } from "./credentials.mjs";
+import { TICKER, verser } from "./ecocredits.mjs";
 
 const FICHIER = new URL("../data/lots.json", import.meta.url);
 
@@ -123,17 +124,44 @@ export async function accepterTransfert(id, role) {
   });
 }
 
-// Fin de vie : le détenteur (le recycleur) détruit le NFT.
+// Fin de vie : le détenteur (le recycleur) détruit le NFT, puis l'autorité lui verse
+// 1 éco-crédit par kWh recyclé, seulement si la fiche est conforme au hash inscrit à la création.
 export async function cloturerLot(id, role) {
   await exigerAgrement(role);
   const wallet = getWallet(role);
   const lots = await lireLots();
-  return envoyer(wallet, {
+  const fiche = lots[id]?.fiche;
+
+  // Vérifiée AVANT la destruction : c'est la capacité certifiée qui fixe la récompense.
+  let verif = null;
+  try {
+    verif = await verifierFiche(id);
+  } catch {
+    // lot inconnu hors chaîne : pas de récompense possible
+  }
+
+  const res = await envoyer(wallet, {
     TransactionType: "NFTokenBurn",
     Account: wallet.address,
     NFTokenID: id,
-    Memos: [memo({ etape: "fin-de-vie", lot: lots[id]?.fiche.numero })],
+    Memos: [memo({ etape: "fin-de-vie", lot: fiche?.numero })],
   });
+
+  let ecoCredits;
+  if (!verif) {
+    ecoCredits = { verse: false, raison: "fiche du lot introuvable hors chaîne" };
+  } else if (!verif.conforme) {
+    ecoCredits = { verse: false, raison: "fiche falsifiée : capacité non certifiée, versement refusé" };
+  } else {
+    const kWh = Math.round(Number(fiche.capaciteKWh) || 0);
+    try {
+      const paiement = await verser(role, kWh, { numero: fiche.numero, id });
+      ecoCredits = { verse: true, montant: kWh, ticker: TICKER, lien: paiement.lien };
+    } catch (e) {
+      ecoCredits = { verse: false, raison: `versement impossible : ${e.message}` };
+    }
+  }
+  return { ...res, ecoCredits };
 }
 
 // ---------- Lecture de l'historique depuis le ledger ----------
@@ -158,7 +186,8 @@ async function transactionsDesActeurs() {
     for (const e of r.result.transactions) {
       const tx = e.tx_json ?? e.tx;
       const hash = e.hash ?? tx.hash;
-      if (!tx?.TransactionType?.startsWith("NFToken")) continue;
+      const estEcoCredit = tx?.TransactionType === "Payment" && lireMemo(tx)?.etape === "eco-credits";
+      if (!tx?.TransactionType?.startsWith("NFToken") && !estEcoCredit) continue;
       if (e.meta?.TransactionResult !== "tesSUCCESS") continue;
       parHash.set(hash, {
         tx,
@@ -172,7 +201,7 @@ async function transactionsDesActeurs() {
   return [...parHash.values()].sort((a, b) => a.ledger - b.ledger);
 }
 
-const nftDe = ({ tx, meta }) => tx.NFTokenID ?? meta?.nftoken_id;
+const nftDe = ({ tx, meta }) => tx.NFTokenID ?? meta?.nftoken_id ?? lireMemo(tx)?.nft;
 
 // Rejoue les transactions dans l'ordre pour reconstituer les étapes et l'état actuel du lot.
 function reconstituer(id, transactions) {
@@ -205,6 +234,16 @@ function reconstituer(id, transactions) {
         detenteur = null;
         offreEnAttente = null;
         break;
+      case "Payment": {
+        const dest = roleDe(tx.Destination) ?? tx.Destination;
+        etapes.push({
+          ...base,
+          etape: `Éco-crédits versés : ${base.memo?.kWh ?? "?"} ${TICKER} à ${ACTEURS[dest] ?? dest}`,
+          par: NOM_AUTORITE,
+          type: "Payment (MPT)",
+        });
+        break;
+      }
       default:
         break;
     }

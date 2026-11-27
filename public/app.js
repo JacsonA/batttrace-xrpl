@@ -1,6 +1,7 @@
 // Interface BattTrace : tableau de bord (lots, création, agréments) et détail d'un lot.
 let acteurs = [];
 let lots = [];
+let eco = { total: 0 };
 let moi = "FABRICANT";
 let lotOuvert = null;
 
@@ -16,6 +17,7 @@ const ICONES = {
   check: '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>',
   recyclage: '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>',
   bouclier: '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  feuille: '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10z"/><path d="M2 21c0-3 1.9-5.4 5.1-6"/></svg>',
   alerte: '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
 };
 
@@ -47,6 +49,7 @@ async function action(libelle, fn) {
     const res = await fn();
     journal(`${libelle} : validé`, { lien: res?.lien });
     await rafraichir();
+    return res;
   } catch (e) {
     journal(`${libelle} : ${e.message}`, { erreur: true });
   } finally {
@@ -76,8 +79,11 @@ function afficherTableau() {
   const a = acteur(moi);
   $("#salut").textContent = `Bonjour, ${a?.nom ?? ""}`;
   $("#wallet").innerHTML = a
-    ? `<span>Wallet</span><a class="mono" href="${echap(a.lien)}" target="_blank">${echap(court(a.address))}</a><span style="color:#d0d5dd">|</span><strong>${a.solde != null ? (Math.floor(a.solde * 100) / 100).toLocaleString("fr-FR") : "?"} XRP</strong>`
+    ? `<span>Wallet</span><a class="mono" href="${echap(a.lien)}" target="_blank">${echap(court(a.address))}</a><span style="color:#d0d5dd">|</span><strong>${a.solde != null ? (Math.floor(a.solde * 100) / 100).toLocaleString("fr-FR") : "?"} XRP</strong><span style="color:#d0d5dd">|</span><span class="puce-eco"><img src="eco.svg" alt="" width="16" height="16" style="border-radius:4px">${a.ecoCredits ?? 0} ECO</span>`
     : "";
+  compteur($("#nb-eco"), eco.total ?? 0);
+  $("#eco-lien").hidden = !eco.lien;
+  if (eco.lien) $("#eco-lien").href = eco.lien;
   $("#nb-circulation").textContent = lots.filter((l) => l.statut === "en circulation").length;
   $("#nb-clotures").textContent = lots.filter((l) => l.statut === "clôturé").length;
   $("#nb-agrees").innerHTML = `${acteurs.filter((x) => x.agree).length} <small>/ ${acteurs.length}</small>`;
@@ -106,7 +112,35 @@ function afficherTableau() {
     </div>`).join("");
 }
 
+// Fait défiler un nombre jusqu'à sa nouvelle valeur (compteur des kWh recyclés).
+function compteur(el, cible) {
+  const depart = Number(el.dataset.valeur ?? 0);
+  el.dataset.valeur = cible;
+  if (depart === cible || document.hidden || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    el.textContent = cible.toLocaleString("fr-FR");
+    return;
+  }
+  const debut = performance.now();
+  const pas = (t) => {
+    const p = Math.min(1, (t - debut) / 1200);
+    el.textContent = Math.round(depart + (cible - depart) * (1 - (1 - p) ** 3)).toLocaleString("fr-FR");
+    if (p < 1) requestAnimationFrame(pas);
+  };
+  requestAnimationFrame(pas);
+}
+
+// Petite célébration au versement des éco-crédits.
+function celebrer(montant) {
+  const el = document.createElement("div");
+  el.className = "gain";
+  el.setAttribute("aria-hidden", "true");
+  el.innerHTML = `<img src="eco.svg" alt=""><div>+${montant} ECO<small>éco-crédits versés au recycleur</small></div>`;
+  document.body.append(el);
+  setTimeout(() => el.remove(), 2700);
+}
+
 function iconeEtape(type) {
+  if (type === "Payment (MPT)") return `<div class="frise-icone eco">${ICONES.feuille}</div>`;
   if (type === "NFTokenMint") return `<div class="frise-icone creation">${ICONES.plus}</div>`;
   if (type === "NFTokenAcceptOffer") return `<div class="frise-icone accepte">${ICONES.check}</div>`;
   if (type === "NFTokenBurn") return `<div class="frise-icone fin">${ICONES.recyclage}</div>`;
@@ -160,7 +194,8 @@ function afficherLot(h) {
       <div class="titre-bloc"><h2>Céder le lot</h2><span class="sous">Le destinataire devra accepter pour en devenir responsable</span></div>
       <label>Destinataire <select id="vers">${options}</select></label>
       <button class="btn btn-principal" data-proposer="${h.id}">Proposer le transfert</button>
-      ${moi === "RECYCLEUR" ? `<button class="btn btn-danger" data-cloturer="${h.id}">Clôturer le lot (fin de vie)</button>` : ""}`;
+      ${moi === "RECYCLEUR" ? `<button class="btn btn-danger" data-cloturer="${h.id}">Clôturer le lot (fin de vie)</button>
+      <p class="recompense">Récompense à la clôture : <strong>+${Math.round(Number(h.fiche?.capaciteKWh) || 0)} ECO</strong>, si la fiche est conforme</p>` : ""}`;
   }
 
   const f = h.fiche ?? {};
@@ -227,7 +262,7 @@ async function verifier() {
 // ---------- Chargement ----------
 
 async function rafraichir() {
-  [acteurs, lots] = await Promise.all([api("acteurs"), api("lots")]);
+  [acteurs, lots, eco] = await Promise.all([api("acteurs"), api("lots"), api("ecocredits")]);
   afficherSelecteur();
   afficherTableau();
   if (lotOuvert) afficherLot(await api(`lots/${lotOuvert}/historique`));
@@ -280,7 +315,21 @@ document.body.addEventListener("click", (ev) => {
   const d = b.dataset;
   if (d.ouvrir) ouvrirLot(d.ouvrir);
   if (d.accepter) action("Acceptation du transfert", () => api(`lots/${d.accepter}/accepter`, { acteur: moi }));
-  if (d.cloturer) action("Clôture du lot", () => api(`lots/${d.cloturer}/cloturer`, { acteur: moi }));
+  if (d.cloturer) {
+    action("Clôture du lot", async () => {
+      const r = await api(`lots/${d.cloturer}/cloturer`, { acteur: moi });
+      return r;
+    }).then((r) => {
+      const e = r?.ecoCredits;
+      if (!e) return;
+      if (e.verse) {
+        celebrer(e.montant);
+        journal(`Lot clôturé : +${e.montant} ${e.ticker} versés au recycleur`, { lien: e.lien });
+      } else {
+        journal(`Lot clôturé, éco-crédits refusés : ${e.raison}`, { erreur: true });
+      }
+    });
+  }
   if (d.proposer) {
     const vers = $("#vers").value;
     action(`Proposition à ${nom(vers)}`, () => api(`lots/${d.proposer}/proposer`, { de: moi, vers }));
