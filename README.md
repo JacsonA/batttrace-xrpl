@@ -4,6 +4,14 @@ Passeport numérique des lots de batteries sur le XRP Ledger : chaque lot est un
 
 PoC réalisé pour le hackathon Blockchain Challenge XRPL (sujet : Traçabilité).
 
+## Équipe
+
+| Membre | Rôle | Responsabilités principales |
+| --- | --- | --- |
+| Espoir Hessou | Chef de projet et architecte | Cadrage, architecture on/off-chain, justification blockchain, dépôt GitHub (issues, jalons), README, soutenance |
+| Aurélien Jacson | Développeur XRPL | Scripts xrpl.js : wallets Testnet, mint NFT, offres de transfert, burn, Memos ; sécurité des clés |
+| Alexandre Gao | Développeur XRPL, prototypage | TP 1 à 3 (`xrpl-tp/`) : connexion Testnet avec serveur de secours, wallets, paiements, premier mint et transfert de NFT ; module `common.mjs` qui a servi de base au PoC |
+
 ## Le problème
 
 Un lot de batteries passe du fabricant au constructeur, puis au recycleur. Ces entreprises sont indépendantes et aucune n'accepte qu'une autre détienne le registre commun. BattTrace fournit un historique partagé, infalsifiable et consultable par tous, sans tiers de confiance.
