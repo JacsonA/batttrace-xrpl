@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
 import { dropsToXrp } from "xrpl";
+import QRCode from "qrcode";
 import { ACTEURS, EXPLORER, getClient, getWallet } from "./xrpl.mjs";
 import {
   accepterTransfert,
@@ -64,6 +65,20 @@ const server = createServer(async (req, res) => {
     res.writeHead(code, { "Content-Type": "application/json; charset=utf-8" });
     res.end(JSON.stringify(obj));
   };
+
+  // QR code du passeport : pointe vers la page publique du NFT dans l'explorateur XRPL,
+  // vérifiable par n'importe qui depuis un téléphone, sans passer par BattTrace.
+  const qr = pathname.match(/^\/api\/lots\/(\w+)\/qr\.svg$/);
+  if (qr) {
+    const svg = await QRCode.toString(`${EXPLORER}/nft/${qr[1]}`, {
+      type: "svg",
+      margin: 1,
+      errorCorrectionLevel: "M",
+      color: { dark: "#101828", light: "#ffffff" },
+    });
+    res.writeHead(200, { "Content-Type": "image/svg+xml" });
+    return res.end(svg);
+  }
 
   if (pathname.startsWith("/api/")) {
     for (const [methode, motif, action] of ROUTES) {

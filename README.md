@@ -45,6 +45,10 @@ L'agrément est lu directement sur le ledger (`account_objects`, type `credentia
 - **Off-chain** (`data/lots.json`) : la fiche détaillée du lot (chimie, capacité, site, date). Le bouton « Vérifier la fiche » recalcule son hash et le compare à celui inscrit à la création : toute modification de la fiche est détectée.
 - **L'historique** est reconstitué en lisant le ledger (`account_tx`), pas depuis une base locale.
 
+**Passeport scannable**
+
+Chaque lot a un QR code qui pointe vers la page publique de son NFT sur testnet.xrpl.org. N'importe qui peut le scanner avec un téléphone et vérifier l'historique du lot sans passer par BattTrace : c'est l'étiquette qui serait collée sur la batterie physique.
+
 ## Installation
 
 Prérequis : Node.js 20 ou plus récent.
@@ -79,7 +83,7 @@ npm run demo
 5. **Révoquer** le recycleur, puis tenter de lui proposer le lot : le transfert est refusé.
 6. **Agréer** de nouveau le recycleur, lui proposer le lot, puis choisir **Recycleur** et accepter.
 7. En tant que **Recycleur**, clôturer le lot.
-8. Ouvrir l'historique : chaque étape renvoie vers sa transaction sur [testnet.xrpl.org](https://testnet.xrpl.org).
+8. Ouvrir l'historique : chaque étape renvoie vers sa transaction sur [testnet.xrpl.org](https://testnet.xrpl.org). Afficher le passeport en plein écran et le faire scanner au jury.
 9. Cliquer sur « Vérifier la fiche » : conforme. Modifier la capacité du lot dans `data/lots.json`, revérifier : la falsification est détectée.
 
 ## Réseau et comptes de test

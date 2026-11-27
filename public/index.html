@@ -119,6 +119,20 @@
       </section>
 
       <div class="col-cote">
+        <section class="carte pad passeport">
+          <div class="titre-bloc">
+            <h2>Passeport du lot</h2>
+            <span class="sous">Scannez pour vérifier le lot sur l'explorateur public, sans passer par BattTrace</span>
+          </div>
+          <button id="qr-agrandir" class="qr-cadre" aria-label="Afficher le QR code en plein écran">
+            <img id="lot-qr" alt="QR code du passeport du lot" width="184" height="184">
+            <span class="qr-balayage" aria-hidden="true"></span>
+          </button>
+          <div class="passeport-actions">
+            <button id="qr-agrandir-2" class="btn btn-second">Plein écran</button>
+            <a id="lot-qr-lien" class="btn btn-lien" target="_blank">Ouvrir le lien</a>
+          </div>
+        </section>
         <section id="lot-ceder" class="carte pad" hidden></section>
         <section class="carte pad">
           <h2>Fiche du lot</h2>
@@ -129,6 +143,17 @@
       </div>
     </div>
   </main>
+
+  <!-- QR code en plein écran, pour que le jury le scanne depuis sa place -->
+  <div id="qr-plein" class="qr-plein" role="dialog" aria-modal="true" aria-labelledby="qr-plein-titre" hidden>
+    <div class="qr-plein-carte">
+      <span class="badge-reseau"><span class="point"></span>XRPL Testnet · explorateur public</span>
+      <h2 id="qr-plein-titre"></h2>
+      <img id="qr-plein-img" alt="QR code du passeport du lot" width="380" height="380">
+      <p>Scannez avec l'appareil photo de votre téléphone : l'historique du lot s'ouvre sur testnet.xrpl.org, un explorateur que nous ne contrôlons pas.</p>
+      <button id="qr-fermer" class="btn btn-second">Fermer</button>
+    </div>
+  </div>
 
   <div id="journal" role="status"></div>
   <script src="app.js"></script>

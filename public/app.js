@@ -120,6 +120,10 @@ function afficherLot(h) {
   $("#lot-id").textContent = `${h.id.slice(0, 16)}…`;
   $("#lot-id").title = h.id;
   $("#lot-lien").href = h.lienNft;
+  const qr = `/api/lots/${h.id}/qr.svg`;
+  if ($("#lot-qr").getAttribute("src") !== qr) $("#lot-qr").src = qr;
+  $("#lot-qr-lien").href = h.lienNft;
+  $("#qr-plein-titre").textContent = `Passeport ${h.fiche?.numero ?? ""}`;
 
   const det = acteur(h.detenteur);
   $("#lot-detenteur").innerHTML = det
@@ -228,6 +232,21 @@ document.body.addEventListener("click", (ev) => {
 });
 
 $("#retour").addEventListener("click", fermerLot);
+
+// QR code en plein écran
+function ouvrirQr() {
+  $("#qr-plein-img").src = $("#lot-qr").src;
+  $("#qr-plein").hidden = false;
+  $("#qr-fermer").focus();
+}
+function fermerQr() {
+  $("#qr-plein").hidden = true;
+}
+$("#qr-agrandir").addEventListener("click", ouvrirQr);
+$("#qr-agrandir-2").addEventListener("click", ouvrirQr);
+$("#qr-fermer").addEventListener("click", fermerQr);
+$("#qr-plein").addEventListener("click", (ev) => { if (ev.target.id === "qr-plein") fermerQr(); });
+document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !$("#qr-plein").hidden) fermerQr(); });
 $("#rafraichir").addEventListener("click", () => action("Actualisation", async () => null));
 
 $("#verifier").addEventListener("click", async () => {
