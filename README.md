@@ -8,7 +8,7 @@ PoC réalisé pour le hackathon Blockchain Challenge XRPL (sujet : Traçabilité
 
 | Membre | Rôle | Responsabilités principales |
 | --- | --- | --- |
-| Espoir Hessou | Chef de projet et architecte | Cadrage, architecture on/off-chain, justification blockchain, dépôt GitHub (issues, jalons), README, soutenance |
+| Espoir Hessou | Architecte | Cadrage, architecture on/off-chain, justification blockchain, dépôt GitHub (issues, jalons), README, soutenance |
 | Aurélien Jacson | Développeur XRPL | Scripts xrpl.js : wallets Testnet, mint NFT, offres de transfert, burn, Memos ; sécurité des clés |
 | Alexandre Gao | Développeur XRPL, prototypage | TP 1 à 3 (`xrpl-tp/`) : connexion Testnet avec serveur de secours, wallets, paiements, premier mint et transfert de NFT ; module `common.mjs` qui a servi de base au PoC |
 

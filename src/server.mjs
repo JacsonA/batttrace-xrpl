@@ -116,5 +116,14 @@ const server = createServer(async (req, res) => {
   }
 });
 
+// Message clair si un autre serveur BattTrace (ou une autre appli) occupe déjà le port.
+server.on("error", (e) => {
+  if (e.code !== "EADDRINUSE") throw e;
+  console.error(`\nLe port ${PORT} est déjà utilisé : BattTrace tourne sans doute déjà.`);
+  console.error(`Ouvre simplement http://localhost:${PORT}`);
+  console.error("Ou arrête l'autre serveur (fenêtre de terminal fermée ou Ctrl+C), puis relance npm start.\n");
+  process.exit(1);
+});
+
 await getClient();
 server.listen(PORT, () => console.log(`BattTrace : http://localhost:${PORT}`));

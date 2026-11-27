@@ -1,14 +1,19 @@
 :root {
-  --fond: #f6f7f9;
-  --carte: #ffffff;
-  --bord: #e4e7ec;
-  --bord-doux: #eaecf0;
-  --texte: #101828;
-  --texte-2: #344054;
-  --discret: #475467;
-  --pale: #667085;
-  --accent: #047857;
-  --accent-fonce: #065f46;
+  /* Direction artistique des slides : blanc cassé, noir, jaune fluo */
+  --fond: #f1f1ec;
+  --carte: #fbfbf8;
+  --bord: #e2e2dc;
+  --bord-doux: #e8e8e2;
+  --texte: #141414;
+  --texte-2: #2f2f2c;
+  --discret: #55554f;
+  --pale: #6b6b64;
+  --accent: #141414;
+  --accent-fonce: #3a3a36;
+  --jaune: #e4f84a;
+  --jaune-fonce: #d3e83a;
+  --sombre: #1b1b1a;
+  --titre: Manrope, Inter, system-ui, sans-serif;
   --ok: #067647;
   --ok-fond: #ecfdf3;
   --ok-point: #17b26a;
@@ -16,7 +21,7 @@
   --attente-fond: #fff6ed;
   --ko: #b42318;
   --ko-fond: #fef3f2;
-  --neutre-fond: #f2f4f7;
+  --neutre-fond: #e8e8e2;
   --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
   font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
   color: var(--texte);
@@ -222,3 +227,62 @@ th:last-child, td:last-child { padding-right: 24px; text-align: right; }
 body.occupe button, body.occupe select, body.occupe input { pointer-events: none; opacity: .6; }
 body.occupe #journal::before { content: ""; display: inline-block; width: 12px; height: 12px; margin-right: 10px; vertical-align: -1px; border: 2px solid rgba(255, 255, 255, .4); border-top-color: #fff; border-radius: 50%; animation: tourne .8s linear infinite; }
 @keyframes tourne { to { transform: rotate(360deg); } }
+
+/* ==========================================================================
+   Thème des slides : grands titres Manrope, cartes arrondies, pastilles,
+   accent jaune fluo (toujours avec du texte foncé dessus).
+   ========================================================================== */
+h1, h2, .marque-nom strong, .chiffre strong, .lot-titre h1, .gain { font-family: var(--titre); }
+h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.035em; }
+h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.lot-titre h1 { font-size: 48px; }
+a { text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+.entete { background: var(--fond); border-bottom: none; }
+.entete-int { padding-block: 20px; }
+.logo { background: var(--jaune); border-radius: 12px; }
+.marque-nom strong { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; }
+.badge-reseau { background: var(--carte); border: 1px solid var(--bord); }
+
+.selecteur { background: var(--carte); border: 1px solid var(--bord); border-radius: 999px; }
+.selecteur button { border-radius: 999px; padding-inline: 18px; }
+.selecteur button[aria-pressed="true"] { background: var(--sombre); color: var(--fond); box-shadow: none; }
+
+.carte { border-radius: 24px; border-color: var(--bord); }
+.carte-tete { border-bottom-color: var(--bord-doux); }
+.chiffre { padding: 24px; }
+.chiffre strong { font-size: 40px; font-weight: 800; letter-spacing: -0.04em; }
+.puce-wallet { border-radius: 16px; padding-inline: 16px; flex-wrap: wrap; }
+
+.btn { border-radius: 999px; padding-inline: 18px; white-space: nowrap; }
+.btn-principal { background: var(--jaune); border-color: var(--jaune); color: var(--texte); }
+.btn-principal:hover { background: var(--jaune-fonce); border-color: var(--jaune-fonce); color: var(--texte); }
+.btn-second { border-color: var(--bord); }
+.btn-second:hover { background: var(--fond); }
+.btn-lien { color: var(--texte); font-weight: 600; }
+input, select { border-radius: 14px; border-color: var(--bord); }
+input:focus, select:focus, button:focus-visible, a:focus-visible { outline-color: var(--texte); }
+
+/* Éco-crédits : carte sombre et chiffre jaune, comme la slide gamification */
+.chiffre.eco { background: var(--sombre); border-color: var(--sombre); }
+.chiffre.eco > span, .chiffre.eco small { color: #c9c9c2; }
+.chiffre.eco strong { color: var(--jaune); }
+.eco-lien { color: var(--jaune); }
+.eco-lien:hover { color: #f1ff8a; }
+.puce-eco { color: var(--texte); }
+.recompense strong { color: var(--texte); background: var(--jaune); border-radius: 6px; padding: 0 6px; }
+.gain { border-color: var(--jaune); color: var(--texte); }
+
+/* Historique */
+.frise-icone.accepte { background: var(--jaune); color: var(--texte); }
+.frise-icone.eco { background: var(--sombre); color: var(--jaune); border-color: var(--sombre); }
+.frise-icone.fin { background: var(--sombre); }
+.tx { border-radius: 999px; padding-inline: 12px; }
+
+/* Passeport et notifications */
+.qr-cadre { border-radius: 24px; }
+.qr-balayage { background: linear-gradient(180deg, transparent, rgba(228, 248, 74, .25) 85%, rgba(200, 220, 40, .9)); }
+.qr-plein-carte { border-radius: 28px; }
+#journal { background: var(--sombre); border-radius: 999px; padding-inline: 20px; }
+#journal a { color: var(--jaune); }
+.bandeau { border-radius: 20px; }
