@@ -216,7 +216,13 @@ function reconstituer(id, transactions) {
 export async function historique(id) {
   const lots = await lireLots();
   const etat = reconstituer(id, await transactionsDesActeurs());
-  return { id, fiche: lots[id]?.fiche ?? null, lienNft: `${EXPLORER}/nft/${id}`, ...etat };
+  return {
+    id,
+    fiche: lots[id]?.fiche ?? null,
+    falsifie: Boolean(lots[id]?.ficheOriginale),
+    lienNft: `${EXPLORER}/nft/${id}`,
+    ...etat,
+  };
 }
 
 export async function listerLots() {
@@ -239,5 +245,45 @@ export async function verifierFiche(id) {
   if (!mint) throw new Error("Transaction de création introuvable sur le ledger");
   const hashOnChain = convertHexToString(mint.tx.URI).replace(/^sha256:/, "");
   const hashActuel = hashFiche(lot.fiche);
-  return { conforme: hashOnChain === hashActuel, hashOnChain, hashActuel, lien: `${EXPLORER}/transactions/${mint.hash}` };
+  // Champs qui diffèrent de la fiche d'origine (connue seulement pendant une falsification simulée).
+  const origine = lot.ficheOriginale;
+  const modifications = origine
+    ? Object.keys(lot.fiche)
+      .filter((k) => lot.fiche[k] !== origine[k])
+      .map((champ) => ({ champ, avant: origine[champ], apres: lot.fiche[champ] }))
+    : [];
+  return {
+    conforme: hashOnChain === hashActuel,
+    hashOnChain,
+    hashActuel,
+    falsifie: Boolean(origine),
+    modifications,
+    lien: `${EXPLORER}/transactions/${mint.hash}`,
+  };
+}
+
+// ---------- Démonstration : falsification de la fiche hors chaîne ----------
+
+// Simule un acteur malveillant qui modifie la fiche stockée hors chaîne (capacité gonflée de 20 %).
+// Le ledger n'est pas touché : c'est justement ce qui permet de détecter la fraude.
+export async function simulerFalsification(id) {
+  const lots = await lireLots();
+  const lot = lots[id];
+  if (!lot) throw new Error("Lot inconnu dans le stockage off-chain");
+  if (lot.ficheOriginale) throw new Error("La fiche est déjà falsifiée");
+  lot.ficheOriginale = { ...lot.fiche };
+  const capacite = Number(lot.fiche.capaciteKWh) || 75;
+  lot.fiche = { ...lot.fiche, capaciteKWh: Math.round(capacite * 1.2) };
+  await ecrireLots(lots);
+  return verifierFiche(id);
+}
+
+export async function restaurerFiche(id) {
+  const lots = await lireLots();
+  const lot = lots[id];
+  if (!lot?.ficheOriginale) throw new Error("Aucune falsification à annuler");
+  lot.fiche = lot.ficheOriginale;
+  delete lot.ficheOriginale;
+  await ecrireLots(lots);
+  return verifierFiche(id);
 }

@@ -137,8 +137,11 @@
         <section class="carte pad">
           <h2>Fiche du lot</h2>
           <dl id="lot-fiche" class="fiche"></dl>
-          <div id="lot-verif"></div>
-          <button id="verifier" class="btn btn-second">Vérifier la fiche</button>
+          <div id="lot-verif" aria-live="polite"></div>
+          <div class="fiche-actions">
+            <button id="verifier" class="btn btn-second">Vérifier la fiche</button>
+            <button id="falsifier" class="btn btn-danger">Simuler une falsification</button>
+          </div>
         </section>
       </div>
     </div>

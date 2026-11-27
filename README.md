@@ -84,7 +84,7 @@ npm run demo
 6. **Agréer** de nouveau le recycleur, lui proposer le lot, puis choisir **Recycleur** et accepter.
 7. En tant que **Recycleur**, clôturer le lot.
 8. Ouvrir l'historique : chaque étape renvoie vers sa transaction sur [testnet.xrpl.org](https://testnet.xrpl.org). Afficher le passeport en plein écran et le faire scanner au jury.
-9. Cliquer sur « Vérifier la fiche » : conforme. Modifier la capacité du lot dans `data/lots.json`, revérifier : la falsification est détectée.
+9. La fiche est vérifiée à l'ouverture du lot : conforme. Cliquer sur « Simuler une falsification » : la capacité est gonflée de 20 % dans la fiche hors chaîne, et BattTrace affiche aussitôt les deux empreintes côte à côte (celle du ledger et celle de la fiche actuelle), caractères différents surlignés. « Restaurer la fiche d'origine » la rend de nouveau conforme.
 
 ## Réseau et comptes de test
 

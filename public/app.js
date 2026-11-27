@@ -164,8 +164,64 @@ function afficherLot(h) {
   }
 
   const f = h.fiche ?? {};
-  const champs = [["Chimie", f.chimie], ["Capacité", f.capaciteKWh ? `${f.capaciteKWh} kWh` : null], ["Site", f.site], ["Fabrication", f.dateFabrication ? new Date(f.dateFabrication).toLocaleDateString("fr-FR") : null]];
-  $("#lot-fiche").innerHTML = champs.filter(([, v]) => v).map(([k, v]) => `<div><dt>${k}</dt><dd>${echap(v)}</dd></div>`).join("");
+  const alteres = new Set(derniereVerif?.id === h.id ? derniereVerif.modifications.map((m) => m.champ) : []);
+  const champs = [
+    ["chimie", "Chimie", f.chimie],
+    ["capaciteKWh", "Capacité", f.capaciteKWh ? `${f.capaciteKWh} kWh` : null],
+    ["site", "Site", f.site],
+    ["dateFabrication", "Fabrication", f.dateFabrication ? new Date(f.dateFabrication).toLocaleDateString("fr-FR") : null],
+  ];
+  $("#lot-fiche").innerHTML = champs.filter(([, , v]) => v)
+    .map(([cle, k, v]) => `<div><dt>${k}</dt><dd class="${alteres.has(cle) ? "altere" : ""}">${echap(v)}</dd></div>`).join("");
+
+  $("#falsifier").textContent = h.falsifie ? "Restaurer la fiche d'origine" : "Simuler une falsification";
+  $("#falsifier").className = `btn ${h.falsifie ? "btn-second" : "btn-danger"}`;
+  $("#falsifier").dataset.falsifie = h.falsifie ? "1" : "";
+}
+
+// ---------- Vérification de la fiche ----------
+
+let derniereVerif = null;
+const LIBELLES = { chimie: "Chimie", capaciteKWh: "Capacité (kWh)", site: "Site", dateFabrication: "Date de fabrication", numero: "Numéro" };
+
+// Surligne les caractères d'une empreinte qui diffèrent de la référence, par blocs de 8 pour la lisibilité.
+function empreinte(hash, reference) {
+  return [...hash].map((c, i) => {
+    const car = c === reference[i] ? c : `<mark style="animation-delay:${(i % 16) * 25}ms">${c}</mark>`;
+    return i % 8 === 7 && i < hash.length - 1 ? `${car} ` : car;
+  }).join("");
+}
+
+function afficherVerif(v) {
+  if (v.conforme) {
+    $("#lot-verif").innerHTML = `<div class="verif ok">${ICONES.bouclier}<div><strong>Fiche conforme</strong><span>Son empreinte SHA-256 correspond à celle inscrite sur le ledger à la création. <a href="${echap(v.lien)}" target="_blank">Voir la transaction</a></span></div></div>`;
+    return;
+  }
+  const differents = [...v.hashActuel].filter((c, i) => c !== v.hashOnChain[i]).length;
+  const modifs = v.modifications.map((m) => `<li>${echap(LIBELLES[m.champ] ?? m.champ)} : ${echap(m.avant)} → <b>${echap(m.apres)}</b></li>`).join("");
+  $("#lot-verif").innerHTML = `
+    <div class="verif ko">${ICONES.alerte}<div>
+      <strong>Fiche falsifiée</strong>
+      <span>La fiche stockée hors chaîne a été modifiée : son empreinte ne correspond plus à celle gravée sur le ledger.</span>
+      ${modifs ? `<ul class="modifs">${modifs}</ul>` : ""}
+      <div class="empreintes">
+        <div class="empreinte"><span>Inscrite sur le ledger à la création (immuable)</span><code>${empreinte(v.hashOnChain, v.hashOnChain)}</code></div>
+        <div class="empreinte"><span>Recalculée sur la fiche actuelle</span><code>${empreinte(v.hashActuel, v.hashOnChain)}</code></div>
+      </div>
+      <span class="avalanche">Une seule valeur changée : <strong>${differents} caractères sur ${v.hashActuel.length}</strong> de l'empreinte diffèrent.</span>
+    </div></div>`;
+}
+
+async function verifier() {
+  if (!lotOuvert) return;
+  try {
+    const v = await api(`lots/${lotOuvert}/verifier`);
+    derniereVerif = { id: lotOuvert, ...v };
+    afficherVerif(v);
+    afficherLot(await api(`lots/${lotOuvert}/historique`));
+  } catch (e) {
+    journal(`Vérification : ${e.message}`, { erreur: true });
+  }
 }
 
 // ---------- Chargement ----------
@@ -180,10 +236,12 @@ async function rafraichir() {
 async function ouvrirLot(id) {
   lotOuvert = id;
   $("#lot-verif").innerHTML = "";
+  derniereVerif = null;
   afficherLot(await api(`lots/${id}/historique`));
   $("#vue-tableau").hidden = true;
   $("#vue-lot").hidden = false;
   window.scrollTo(0, 0);
+  verifier(); // la fiche est vérifiée dès l'ouverture du lot
 }
 
 function fermerLot() {
@@ -249,14 +307,17 @@ $("#qr-plein").addEventListener("click", (ev) => { if (ev.target.id === "qr-plei
 document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !$("#qr-plein").hidden) fermerQr(); });
 $("#rafraichir").addEventListener("click", () => action("Actualisation", async () => null));
 
-$("#verifier").addEventListener("click", async () => {
+$("#verifier").addEventListener("click", verifier);
+
+// Falsification simulée : on modifie la fiche hors chaîne, puis on revérifie aussitôt contre le ledger.
+$("#falsifier").addEventListener("click", async () => {
+  const restaurer = $("#falsifier").dataset.falsifie === "1";
   try {
-    const v = await api(`lots/${lotOuvert}/verifier`);
-    $("#lot-verif").innerHTML = v.conforme
-      ? `<div class="verif ok">${ICONES.bouclier}<div><strong>Fiche conforme</strong><span>Son hash SHA-256 correspond à celui inscrit sur le ledger à la création. <a href="${echap(v.lien)}" target="_blank">Voir la transaction</a></span></div></div>`
-      : `<div class="verif ko">${ICONES.alerte}<div><strong>Fiche modifiée</strong><span>Son hash ne correspond plus à celui inscrit sur le ledger : la fiche a été altérée hors chaîne.</span></div></div>`;
+    await api(`lots/${lotOuvert}/${restaurer ? "restaurer" : "falsifier"}`, {});
+    journal(restaurer ? "Fiche d'origine restaurée" : "Fiche modifiée hors chaîne : capacité gonflée de 20 %");
+    await verifier();
   } catch (e) {
-    journal(`Vérification : ${e.message}`, { erreur: true });
+    journal(e.message, { erreur: true });
   }
 });
 

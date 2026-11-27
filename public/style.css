@@ -158,6 +158,23 @@ th:last-child, td:last-child { padding-right: 24px; text-align: right; }
 .verif.ko strong { color: var(--ko); }
 .verif span { font-size: 13px; color: var(--texte-2); }
 
+/* ---------- Falsification ---------- */
+.fiche-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.fiche-actions .btn { flex: 1 1 140px; }
+.fiche dd.altere { color: var(--ko); }
+.verif.ko { border: 1px solid #fda29b; animation: secousse .45s ease-in-out; }
+@keyframes secousse { 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+.modifs { margin: 4px 0 0; padding: 0; list-style: none; font-size: 13px; color: var(--texte-2); }
+.modifs b { color: var(--ko); }
+.empreintes { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.empreinte { display: flex; flex-direction: column; gap: 4px; }
+.empreinte > span:first-child { font-size: 12px; font-weight: 600; color: var(--discret); }
+.empreinte code { font-family: var(--mono); font-size: 12px; line-height: 1.7; word-break: break-all; color: var(--texte); background: #fff; border: 1px solid var(--bord-doux); border-radius: 8px; padding: 6px 8px; }
+.empreinte mark { background: #fee4e2; color: var(--ko); border-radius: 2px; animation: surligne .6s ease-out both; }
+@keyframes surligne { from { background: transparent; color: var(--texte); } }
+.avalanche { font-size: 13px; color: var(--texte-2); }
+.avalanche strong { color: var(--ko); }
+
 /* ---------- Passeport (QR code) ---------- */
 .qr-cadre { position: relative; align-self: center; padding: 14px; background: #fff; border: 1px solid var(--bord); border-radius: 16px; cursor: zoom-in; overflow: hidden; line-height: 0; transition: transform .2s, box-shadow .2s; }
 .qr-cadre:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(16, 24, 40, .10); }
@@ -176,6 +193,7 @@ th:last-child, td:last-child { padding-right: 24px; text-align: right; }
 
 @media (prefers-reduced-motion: reduce) {
   .qr-balayage { display: none; }
+  .verif.ko, .empreinte mark { animation: none; }
   .qr-plein, .qr-cadre { animation: none; transition: none; }
 }
 

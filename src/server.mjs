@@ -12,6 +12,8 @@ import {
   historique,
   listerLots,
   proposerTransfert,
+  restaurerFiche,
+  simulerFalsification,
   verifierFiche,
 } from "./lots.mjs";
 import { agreer, etatAgrement, infosAutorite, revoquer } from "./credentials.mjs";
@@ -54,6 +56,8 @@ const ROUTES = [
   ["POST", /^\/api\/lots$/, (_, b) => creerLot(b.acteur, b.fiche)],
   ["GET", /^\/api\/lots\/(\w+)\/historique$/, ([id]) => historique(id)],
   ["GET", /^\/api\/lots\/(\w+)\/verifier$/, ([id]) => verifierFiche(id)],
+  ["POST", /^\/api\/lots\/(\w+)\/falsifier$/, ([id]) => simulerFalsification(id)],
+  ["POST", /^\/api\/lots\/(\w+)\/restaurer$/, ([id]) => restaurerFiche(id)],
   ["POST", /^\/api\/lots\/(\w+)\/proposer$/, ([id], b) => proposerTransfert(id, b.de, b.vers)],
   ["POST", /^\/api\/lots\/(\w+)\/accepter$/, ([id], b) => accepterTransfert(id, b.acteur)],
   ["POST", /^\/api\/lots\/(\w+)\/cloturer$/, ([id], b) => cloturerLot(id, b.acteur)],
